@@ -1,0 +1,105 @@
+# Production Docker Compose Configuration
+# Usage: docker-compose -f docker-compose.prod.yml up -d
+
+version: '3.8'
+
+services:
+  # HEA Webapp Service (Production)
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    image: hea-webapp:latest
+    container_name: hea-webapp-prod
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data:ro
+      - ./models:/app/models:ro
+      - webapp-logs:/app/logs
+      - ./config:/app/config:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+      - LOG_LEVEL=WARNING
+    networks:
+      - hea-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # HEA Backend API Service (Production)
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    image: hea-backend:latest
+    container_name: hea-backend-prod
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models:ro
+      - ./config:/app/config:ro
+      - backend-logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - LOG_LEVEL=WARNING
+      - WORKERS=4
+    networks:
+      - hea-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  hea-network:
+    driver: bridge
+
+volumes:
+  webapp-logs:
+    driver: local
+  backend-logs:
+    driver: local

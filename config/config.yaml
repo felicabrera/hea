@@ -1,0 +1,84 @@
+project:
+  name: "hea"
+  version: "1.00"
+  random_seed: 42
+
+data:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  catalog_dir: "data/catalogs"
+  cache_dir: "data/cache"
+  
+  missions:
+    - kepler
+    - tess
+    - k2
+
+preprocessing:
+  time_series_length: 2001
+  detrend_method: "savgol"  # 'savgol', 'spline', 'biweight'
+  normalize_method: "robust"  # 'standard', 'minmax', 'robust'
+  remove_outliers: true
+  outlier_sigma: 5.0
+  phase_fold: true
+  bin_data: true
+
+features:
+  use_stellar_params: true
+  stellar_features:
+    - "Teff"
+    - "Radius"
+    - "Mass"
+    - "logg"
+  
+  use_transit_features: true
+  transit_features:
+    - "depth"
+    - "duration"
+    - "period"
+    - "snr"
+    - "odd_even_diff"
+
+training:
+  batch_size: 32
+  epochs: 100
+  learning_rate: 0.001
+  optimizer: "adam"
+  weight_decay: 1e-5
+  
+  early_stopping:
+    patience: 15
+    monitor: "val_f1"
+    mode: "max"
+    min_delta: 0.001
+  
+  class_weights:
+    auto: true
+  
+  augmentation:
+    enabled: true
+    noise_level: 0.01
+    time_shift: true
+    amplitude_scale: 0.05
+
+evaluation:
+  metrics:
+    - "accuracy"
+    - "precision"
+    - "recall"
+    - "f1"
+    - "auc_roc"
+    - "auc_pr"
+  
+  cross_dataset_validation: true
+  confusion_matrix: true
+  threshold_optimization: true
+  
+paths:
+  models_dir: "models"
+  experiments_dir: "experiments"
+  logs_dir: "logs"
+  
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

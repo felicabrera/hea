@@ -1,0 +1,77 @@
+# Hyperparameter Tuning Configuration
+# HEA - NASA Space Apps Challenge 2025
+
+# Data Configuration
+data_path: "data/processed/training_data.csv"
+target_column: "LABEL"
+
+# Optimization Configuration
+n_trials: 100
+cv_folds: 5
+test_size: 0.2
+random_state: 42
+
+# Models to include in ensemble
+models:
+  - "rf"      # Random Forest
+  - "gb"      # Gradient Boosting
+  - "xgb"     # XGBoost (if available)
+  - "lgbm"    # LightGBM (if available)
+
+# Model-specific parameter ranges
+model_parameters:
+  rf:
+    n_estimators: [50, 500]
+    max_depth: [3, 20]
+    min_samples_split: [2, 20]
+    min_samples_leaf: [1, 10]
+    max_features: ["sqrt", "log2", null]
+    bootstrap: [true, false]
+    class_weight: ["balanced", null]
+  
+  gb:
+    n_estimators: [50, 300]
+    learning_rate: [0.01, 0.3]
+    max_depth: [3, 10]
+    min_samples_split: [2, 20]
+    min_samples_leaf: [1, 10]
+    subsample: [0.6, 1.0]
+    max_features: ["sqrt", "log2", null]
+  
+  xgb:
+    n_estimators: [50, 500]
+    learning_rate: [0.01, 0.3]
+    max_depth: [3, 10]
+    min_child_weight: [1, 10]
+    subsample: [0.6, 1.0]
+    colsample_bytree: [0.6, 1.0]
+    gamma: [0, 5]
+    reg_alpha: [0, 1]
+    reg_lambda: [1, 2]
+  
+  lgbm:
+    n_estimators: [50, 500]
+    learning_rate: [0.01, 0.3]
+    max_depth: [3, 10]
+    num_leaves: [10, 300]
+    min_child_samples: [5, 100]
+    subsample: [0.6, 1.0]
+    colsample_bytree: [0.6, 1.0]
+    reg_alpha: [0, 1]
+    reg_lambda: [0, 1]
+
+# Output Configuration
+output_dir: "models/hyperparameter_results"
+save_study: true
+save_plots: true
+
+# Performance Configuration
+n_jobs: -1
+verbose: true
+
+# Optuna Configuration
+optuna:
+  sampler: "TPESampler"
+  pruner: null
+  study_name: "hea_optimization"
+  storage: null  # Use in-memory storage

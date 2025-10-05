@@ -1,0 +1,93 @@
+cnn_1d:
+  architecture:
+    conv_layers:
+      - filters: 16
+        kernel_size: 5
+        activation: "relu"
+        batch_norm: true
+      - filters: 32
+        kernel_size: 5
+        activation: "relu"
+        batch_norm: true
+      - filters: 64
+        kernel_size: 5
+        activation: "relu"
+        batch_norm: true
+      - filters: 128
+        kernel_size: 3
+        activation: "relu"
+        batch_norm: true
+    
+    pooling:
+      type: "max"
+      pool_size: 2
+    
+    global_pooling: "average"
+    
+    dense_layers:
+      - units: 256
+        activation: "relu"
+        dropout: 0.5
+      - units: 128
+        activation: "relu"
+        dropout: 0.3
+    
+    output:
+      units: 2
+      activation: "softmax"
+
+lstm:
+  architecture:
+    lstm_units: 128
+    num_layers: 2
+    bidirectional: true
+    dropout: 0.3
+    recurrent_dropout: 0.2
+    
+    dense_layers:
+      - units: 128
+        activation: "relu"
+        dropout: 0.4
+      - units: 64
+        activation: "relu"
+        dropout: 0.2
+    
+    output:
+      units: 2
+      activation: "softmax"
+
+transformer:
+  architecture:
+    d_model: 128
+    nhead: 8
+    num_encoder_layers: 6
+    dim_feedforward: 512
+    dropout: 0.1
+    
+    dense_layers:
+      - units: 256
+        activation: "relu"
+        dropout: 0.3
+      - units: 128
+        activation: "relu"
+        dropout: 0.2
+    
+    output:
+      units: 2
+      activation: "softmax"
+
+ensemble:
+  models:
+    - "cnn_1d"
+    - "lstm"
+  voting_method: "soft"
+  weights: null
+  use_stacking: false
+  stacking_model: "logistic_regression"
+
+transfer_learning:
+  source_mission: "kepler"
+  target_missions: ["tess", "k2"]
+  freeze_layers: 3
+  fine_tune_epochs: 20
+  fine_tune_lr: 0.0001
